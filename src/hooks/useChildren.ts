@@ -7,6 +7,7 @@ import React, {
 import useSelection from "src/hooks/useSelection";
 import { MenuElementProps } from "src/typings";
 import { mergeRefs } from "react-merge-refs";
+import { Direction, invertPoint } from "src/utils/findClosestRectIndex";
 
 interface UseSelectableChildrenConfig {
   selectable: React.ForwardRefExoticComponent<MenuElementProps>[];
@@ -15,6 +16,9 @@ interface UseSelectableChildrenConfig {
 
   displayed?: boolean;
   resetIndex?: boolean;
+
+  selected?: boolean;
+  selectionFrom?: Direction;
 }
 
 export type MenuChildRef = React.RefObject<HTMLElement>;
@@ -28,14 +32,18 @@ function useChildren(
     infiniteNavigation,
     displayed,
     resetIndex,
+    selected,
+    selectionFrom,
   }: UseSelectableChildrenConfig
 ): React.ReactNode {
   const refs = useRef<{ index: number; ref: MenuChildRef }[]>([]);
-  const index = useSelection(refs, menuUUID, {
+  const { index, direction } = useSelection(refs, menuUUID, {
     defaultIndex,
     infiniteNavigation,
     displayed,
     resetIndex,
+    selected,
+    selectionFrom,
   });
 
   const isSelectable = useCallback(
@@ -58,7 +66,9 @@ function useChildren(
           refs.current.push({ index: i, ref });
 
           return React.cloneElement(childElement, {
+            displayed,
             selected: i === index,
+            selectionFrom: direction ? invertPoint[direction] : 'down',
             // @ts-ignore
             ref: mergeRefs([ref, child.ref]),
           });
@@ -66,7 +76,7 @@ function useChildren(
       }
       return child;
     });
-  }, [children, index]);
+  }, [children, displayed, index]);
 }
 
 export default useChildren;

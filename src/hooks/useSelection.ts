@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { MenuChildRef } from "./useChildren";
 import findClosestRectIndex, { Direction } from "src/utils/findClosestRectIndex";
 import { MenuContext } from "src/components/MenuContext";
@@ -9,21 +9,27 @@ interface UseSelectionConfig {
 
   displayed?: boolean;
   resetIndex?: boolean;
+
+  selected?: boolean;
+  selectionFrom?: Direction;
 }
 
 function useSelection(
   refs: React.RefObject<{ index: number; ref: MenuChildRef }[]>,
   menuUUID: string,
-  { defaultIndex, infiniteNavigation, displayed, resetIndex }: UseSelectionConfig
-): number {
+  { defaultIndex, infiniteNavigation, displayed, resetIndex, selected, selectionFrom }: UseSelectionConfig
+) {
   const indexRef = useRef(defaultIndex === undefined ? -1 : defaultIndex);
-  const [index, setIndex] = useState(indexRef.current);
+  const [selection, setSelection] = useState<{ index: number, direction?: Direction }>({ index: indexRef.current });
+
+  const isSubMenu = useMemo(() => selected !== undefined, [selected]);
+
   const context = useContext(MenuContext);
 
   useEffect(() => {
     if (resetIndex) {
       indexRef.current = defaultIndex === undefined ? -1 : defaultIndex;
-      setIndex(indexRef.current);
+      setSelection({ index: indexRef.current });
     }
   }, [displayed, resetIndex, defaultIndex]);
 
@@ -67,12 +73,22 @@ function useSelection(
         rects,
         indexRef.current,
         direction,
-        infiniteNavigation
+        infiniteNavigation,
+        selectionFrom,
       );
+
+      if (found === undefined && isSubMenu) {
+        indexRef.current = defaultIndex === undefined ? -1 : defaultIndex;
+        setSelection({ index: indexRef.current });
+
+        context.setStack((old) => old.filter((id) => id !== menuUUID))
+
+        return;
+      }
 
       indexRef.current = found !== undefined ? found : indexRef.current;
 
-      setIndex(indexRef.current);
+      setSelection({ index: indexRef.current, direction });
     };
 
     window.addEventListener("keyup", onKey);
@@ -80,9 +96,9 @@ function useSelection(
     return () => {
       window.removeEventListener("keyup", onKey);
     };
-  }, [refs, infiniteNavigation, menuUUID, context]);
+  }, [refs, infiniteNavigation, menuUUID, context, isSubMenu, selectionFrom]);
 
-  return index;
+  return selection;
 }
 
 export default useSelection;

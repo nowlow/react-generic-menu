@@ -47,7 +47,7 @@ const ContextualMenu = ({ x, y, displayed }: ContextualMenuProps) => {
       resetIndex
       origin="top-center"
       infiniteNavigation
-      selectable={[Button]}
+      selectable={[Button, SubMenu]}
       transform={`scale(${displayed ? 1 : 0})`}
     >
       <Button />
@@ -55,6 +55,12 @@ const ContextualMenu = ({ x, y, displayed }: ContextualMenuProps) => {
       <Button disabled />
       oui
       <Button ref={buttonRef} />
+
+      <SubMenu resetIndex selectable={[Button]}>
+        <Button />
+        <Button />
+      </SubMenu>
+
       <Button />
       <Button />
       <Button />
@@ -64,6 +70,10 @@ const ContextualMenu = ({ x, y, displayed }: ContextualMenuProps) => {
     </StyledMenu>
   );
 };
+
+const SubMenu = styled(Menu)`
+  border: 1px solid blue;
+`
 
 const StyledMenu = styled(Menu)<ContextualMenuProps & { origin: MenuOrigin }>`
   position: absolute;
@@ -95,7 +105,7 @@ function App() {
     >
       <MenuContextProvider>
         <ContextualMenu x={x} y={y} displayed={displayed} />
-        <ContextualMenu x={x + 100} y={y + 100} displayed={displayed2} />
+        {/* <ContextualMenu x={x + 100} y={y + 100} displayed={displayed2} /> */}
       </MenuContextProvider>
     </Container>
   );

@@ -6,7 +6,7 @@ import { MenuOrigin, MenuElementProps } from "src/typings";
 import useChildren from "src/hooks/useChildren";
 import { MenuContext } from "./MenuContext";
 
-export interface MenuProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface MenuProps extends React.HTMLAttributes<HTMLDivElement>, MenuElementProps {
   origin?: MenuOrigin;
   selectable: React.ForwardRefExoticComponent<MenuElementProps>[];
   defaultIndex?: number;
@@ -27,6 +27,8 @@ const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
       infiniteNavigation,
       displayed = true,
       resetIndex,
+      selected,
+      selectionFrom,
       ...props
     },
     extRef
@@ -40,12 +42,14 @@ const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
     useEffect(() => {
       if (!context) throw new Error('You should put your <Menu> in a <MenuContextProvider>');
 
-        if (displayed) {
-          context.setStack((old) => [...old, menuUUID])
-        } else {
-          context.setStack((old) => old.filter((id) => id !== menuUUID))
-        }
-    }, [displayed, menuUUID]);
+      if (displayed) {
+        if (selected === false) return;
+
+        context.setStack((old) => [...old, menuUUID])
+      } else {
+        context.setStack((old) => old.filter((id) => id !== menuUUID))
+      }
+    }, [displayed, selected, menuUUID]);
 
     const clonedChildren = useChildren(children, menuUUID, {
       selectable,
@@ -53,6 +57,8 @@ const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
       infiniteNavigation,
       displayed,
       resetIndex,
+      selected,
+      selectionFrom,
     });
 
     return (
