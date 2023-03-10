@@ -41,7 +41,7 @@ function findClosestRectIndex(
       y: node.rect.y + node.rect.height
     },
     index: node.index
-  }))
+  }));
 
   if (index < 0) {
     if (!selectionFrom) {
@@ -53,48 +53,50 @@ function findClosestRectIndex(
     return adaptedRects.sort((a, b) => compare(a[selectionFrom][pointAxis[selectionFrom]], b[selectionFrom][pointAxis[selectionFrom]]))[0]?.index; 
   }
 
-  const targetIndex = adaptedRects.findIndex((node) => node.index === index)
+  const targetIndex = adaptedRects.findIndex((node) => node.index === index);
 
-  if (targetIndex === -1) return undefined
+  if (targetIndex === -1) return undefined;
 
-  const target = adaptedRects.splice(targetIndex, 1)[0]
+  const target = adaptedRects.splice(targetIndex, 1)[0];
 
   const distance = (a: Point, b: Point) =>
-    Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2)
+    Math.sqrt((b.x - a.x) ** 2 + (b.y - a.y) ** 2);
 
   const compare = (a: number, b: number) => ['up', 'left'].includes(direction) ? a < b : a > b;
 
   const higherRects = adaptedRects.filter((rect) => {
-    const axis = pointAxis[direction]
+    const axis = pointAxis[direction];
 
-    return compare(rect[direction][axis], target[direction][axis])
+    return compare(rect[direction][axis], target[direction][axis]);
   })
 
   if (!higherRects.length && loop) {
     const lowerRects = adaptedRects.filter((rect) => {
-      const axis = pointAxis[direction]
+      const axis = pointAxis[direction];
 
-      let pointInAxis = false
+      const compare = (a: number, b: number) => ['up', 'left'].includes(direction) ? a > b : a < b;
+
+      let pointInAxis = false;
 
       if (axis === 'x') {
         if (
           target[direction].y >= rect.rect.y &&
           target[direction].y <= rect.rect.y + rect.rect.height
         ) {
-          pointInAxis = true
+          pointInAxis = true;
         }
       } else {
         if (
           target[direction].x >= rect.rect.x &&
           target[direction].x <= rect.rect.x + rect.rect.width
         ) {
-          pointInAxis = true
+          pointInAxis = true;
         }
       }
 
       return (
         compare(rect[direction][axis], target[direction][axis]) && pointInAxis
-      )
+      );
     })
 
     lowerRects.sort((a, b) => {
@@ -102,18 +104,18 @@ function findClosestRectIndex(
         distance(target[direction], b[invertPoint[direction]]) -
         distance(target[direction], a[invertPoint[direction]])
       )
-    })
+    });
 
-    return lowerRects[0]?.index
+    return lowerRects[0]?.index;
   } else {
     higherRects.sort((a, b) => {
       return (
         distance(target[direction], a[invertPoint[direction]]) -
         distance(target[direction], b[invertPoint[direction]])
       )
-    })
+    });
 
-    return higherRects[0]?.index
+    return higherRects[0]?.index;
   }
 }
 
