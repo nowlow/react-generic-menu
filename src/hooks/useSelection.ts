@@ -19,10 +19,11 @@ function useSelection(
   menuUUID: string,
   { defaultIndex, infiniteNavigation, displayed, resetIndex, selected, selectionFrom }: UseSelectionConfig
 ) {
+  const isSubMenu = useMemo(() => selected !== undefined, [selected]);
+
   const indexRef = useRef(defaultIndex === undefined ? -1 : defaultIndex);
   const [selection, setSelection] = useState<{ index: number, direction?: Direction }>({ index: indexRef.current });
 
-  const isSubMenu = useMemo(() => selected !== undefined, [selected]);
 
   const context = useContext(MenuContext);
 
@@ -40,23 +41,8 @@ function useSelection(
 
     if (context.stack[context.stack.length - 1] !== menuUUID) return;
 
-    const onKey = (e: KeyboardEvent) => {
-      if (!e.key.startsWith("Arrow") && e.key !== "Enter") return;
+    const findAndSetNext = (direction: Direction) => {
       if (!refs.current) return;
-
-      e.preventDefault();
-
-      if (e.key === "Enter") {
-        const target = refs.current.find(
-          (node) => node.index === indexRef.current
-        );
-
-        if (!target || !target.ref.current) return;
-
-        target.ref.current.click();
-
-        return;
-      }
 
       const rects: { index: number; rect: DOMRect }[] = refs.current
         .filter((child) => !!child.ref.current)
@@ -68,7 +54,6 @@ function useSelection(
           };
         });
 
-      const direction = e.key.replace("Arrow", "").toLowerCase() as Direction;
       const found = findClosestRectIndex(
         rects,
         indexRef.current,
@@ -89,7 +74,34 @@ function useSelection(
       indexRef.current = found !== undefined ? found : indexRef.current;
 
       setSelection({ index: indexRef.current, direction });
+    }
+
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.key.startsWith("Arrow") && e.key !== "Enter") return;
+      if (!refs.current) return;
+
+      e.preventDefault();
+
+      if (e.key === "Enter") {
+        const target = refs.current.find(
+          (node) => node.index === indexRef.current
+        );
+
+        if (!target || !target.ref.current) return;
+
+        target.ref.current.click();
+
+        return;
+      }
+
+      const direction = e.key.replace("Arrow", "").toLowerCase() as Direction;
+
+      findAndSetNext(direction);
     };
+
+    if (isSubMenu && selectionFrom) {
+      findAndSetNext(selectionFrom);
+    }
 
     window.addEventListener("keyup", onKey);
 

@@ -48,10 +48,6 @@ function findClosestRectIndex(
       return 0;
     }
 
-    if (direction === selectionFrom) {
-      return undefined;
-    }
-
     const compare = (a: number, b: number) => ['up', 'left'].includes(selectionFrom) ? a - b : b - a;
 
     return adaptedRects.sort((a, b) => compare(a[selectionFrom][pointAxis[selectionFrom]], b[selectionFrom][pointAxis[selectionFrom]]))[0]?.index; 
