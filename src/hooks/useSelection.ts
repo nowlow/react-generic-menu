@@ -66,7 +66,15 @@ function useSelection(
         indexRef.current = defaultIndex === undefined ? -1 : defaultIndex;
         setSelection({ index: indexRef.current });
 
-        context.setStack((old) => old.filter((id) => id !== menuUUID))
+        context.setStack((old) => old.filter((id) => id !== menuUUID));
+
+        const capitalizeFirstLetter = (string: string): string => {
+          return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+        setTimeout(() => {
+          window.dispatchEvent(new KeyboardEvent('keyup',{'key':`Arrow${capitalizeFirstLetter(direction)}`}))
+        }, 0);
 
         return;
       }
