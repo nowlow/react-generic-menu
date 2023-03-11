@@ -9,4 +9,6 @@ export interface MenuElementProps {
     selectionFrom?: Direction;
     disabled?: boolean;
     displayed?: boolean;
+
+    onExitDirection?: (direction: Direction) => boolean | undefined;
 }

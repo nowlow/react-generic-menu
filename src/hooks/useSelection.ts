@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useMemo, useRef, useState } from "react";
 import { MenuChildRef } from "./useChildren";
 import findClosestRectIndex, { Direction } from "src/utils/findClosestRectIndex";
 import { MenuContext } from "src/components/MenuContext";
+import { MenuElementProps } from "src/typings";
 
 interface UseSelectionConfig {
   defaultIndex?: number;
@@ -13,7 +14,7 @@ interface UseSelectionConfig {
   selected?: boolean;
   selectionFrom?: Direction;
 
-  onExitDirection?: (direction: Direction) => void;
+  onExitDirection?: (direction: Direction) => boolean | undefined;
 }
 
 function useSelection(
@@ -24,8 +25,7 @@ function useSelection(
   const isSubMenu = useMemo(() => selected !== undefined, [selected]);
 
   const indexRef = useRef(defaultIndex === undefined ? -1 : defaultIndex);
-  const [selection, setSelection] = useState<{ index: number, direction?: Direction }>({ index: indexRef.current });
-
+  const [selection, setSelection] = useState<{ index: number, direction?: Direction, onExitChildDirection?: MenuElementProps['onExitDirection'] }>({ index: indexRef.current });
 
   const context = useContext(MenuContext);
 
@@ -41,10 +41,8 @@ function useSelection(
 
     if (!context) throw new Error('useSelection called out of MenuContextProvider');
 
-    if (context.stack[context.stack.length - 1] !== menuUUID) return;
-
-    const findAndSetNext = (direction: Direction) => {
-      if (!refs.current) return;
+    const findAndSetNext = (direction: Direction): boolean => {
+      if (!refs.current) return false;
 
       const rects: { index: number; rect: DOMRect }[] = refs.current
         .filter((child) => !!child.ref.current)
@@ -63,31 +61,29 @@ function useSelection(
         infiniteNavigation,
         selectionFrom,
       );
+      
+
+      if (found === undefined && !isSubMenu) {
+        onExitDirection?.(direction);
+
+        return false;
+      }
 
       if (found === undefined && isSubMenu) {
-        indexRef.current = defaultIndex === undefined ? -1 : defaultIndex;
-        setSelection({ index: indexRef.current });
+        if (!onExitDirection || onExitDirection?.(direction)) {
+          indexRef.current = defaultIndex === undefined ? -1 : defaultIndex;
+          setSelection({ index: indexRef.current });
 
-        context.setStack((old) => old.filter((id) => id !== menuUUID));
-
-        const capitalizeFirstLetter = (string: string): string => {
-          return string.charAt(0).toUpperCase() + string.slice(1);
+          context.setStack((old) => old.filter((id) => id !== menuUUID));
         }
-
-        setTimeout(() => {
-          window.dispatchEvent(new KeyboardEvent('keyup',{'key':`Arrow${capitalizeFirstLetter(direction)}`}))
-        }, 0);
-
-        return;
+        return false;
       }
 
       indexRef.current = found !== undefined ? found : indexRef.current;
 
       setSelection({ index: indexRef.current, direction });
 
-      if (found === undefined) {
-        onExitDirection?.(direction);
-      }
+      return true;
     }
 
     const onKey = (e: KeyboardEvent) => {
@@ -113,7 +109,15 @@ function useSelection(
       findAndSetNext(direction);
     };
 
-    if (isSubMenu && selectionFrom) {
+    if (context.stack[context.stack.length - 1] !== menuUUID) {
+      if (context.stack.length < 2 || context.stack[context.stack.length - 2] !== menuUUID) return;
+
+      setSelection((old) => ({ ...old, onExitChildDirection: findAndSetNext }))
+
+      return;
+    }
+
+    if (isSubMenu && selectionFrom && onExitDirection) {
       findAndSetNext(selectionFrom);
     }
 

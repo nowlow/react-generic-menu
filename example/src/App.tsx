@@ -3,7 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Menu, MenuContextProvider, MenuElementProps, MenuOrigin } from "react-generic-menu";
 
 const Button = React.forwardRef<HTMLDivElement, MenuElementProps & React.HTMLAttributes<HTMLDivElement>>(
-  (props, extRef) => {
+  ({ onExitDirection: _, ...props }, extRef) => {
     return (
       <StyledButton
         onClick={(e: any) => {
@@ -38,6 +38,12 @@ const ContextualMenu = ({ x, y, displayed }: ContextualMenuProps) => {
     console.log(buttonRef);
   }, [buttonRef]);
 
+  useEffect(() => {
+    if (!displayed) {
+      setSubDisplayed(false);
+    }
+  }, [displayed])
+
   return (
     <>
       <StyledMenu
@@ -47,23 +53,22 @@ const ContextualMenu = ({ x, y, displayed }: ContextualMenuProps) => {
         resetIndex
         origin="top-center"
         infiniteNavigation
-        selectable={[Button, SubMenuButton]}
+        selectable={[Button, SubMenuButton, SubMenu2]}
         transform={`scale(${displayed ? 1 : 0})`}
       >
         <Button>Button 1</Button>
         <Button disabled>Disabled button</Button>
         <Button>Button 2</Button>
-        pure text
         <SubMenuButton ref={buttonRef} onClick={() => setSubDisplayed(old => !old)}>
-          Submenu
+          Open submenu
           <SubMenu
             infiniteNavigation
             origin={'top-left'}
             resetIndex
             selectable={[Button]}
             transform={`scale(${subDisplyed ? 1 : 0})`}
-            defaultIndex={0}
             displayed={subDisplyed}
+            defaultIndex={0}
             onExitDirection={(direction) => {
               if (direction === 'left') {
                 setSubDisplayed(false);
@@ -77,11 +82,25 @@ const ContextualMenu = ({ x, y, displayed }: ContextualMenuProps) => {
           </SubMenu>
         </SubMenuButton>
         <Button>Button 3</Button>
+        <SubMenu2 selectable={[Button]}>
+          <Title>Submenu</Title>
+          <Button>Button 1</Button>
+          <Button>Button 2</Button>
+        </SubMenu2>
+        pure text
         <Button>Button 4</Button>
       </StyledMenu>
     </>
   );
 };
+
+const Title = styled(StyledButton)`
+  font-weight: bold;
+`
+
+const SubMenu2 = styled(Menu)`
+  outline: 1px solid blue;
+`
 
 const SubMenu = styled(Menu)<{ origin: MenuOrigin }>`
   position: absolute;

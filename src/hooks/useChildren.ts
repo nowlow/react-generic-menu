@@ -20,7 +20,7 @@ interface UseSelectableChildrenConfig {
   selected?: boolean;
   selectionFrom?: Direction;
 
-  onExitDirection?: (direction: Direction) => void;
+  onExitDirection?: (direction: Direction) => boolean | undefined;
 }
 
 export type MenuChildRef = React.RefObject<HTMLElement>;
@@ -40,7 +40,7 @@ function useChildren(
   }: UseSelectableChildrenConfig
 ): React.ReactNode {
   const refs = useRef<{ index: number; ref: MenuChildRef }[]>([]);
-  const { index, direction } = useSelection(refs, menuUUID, {
+  const { index, direction, onExitChildDirection } = useSelection(refs, menuUUID, {
     defaultIndex,
     infiniteNavigation,
     displayed,
@@ -73,6 +73,7 @@ function useChildren(
             displayed,
             selected: i === index,
             selectionFrom: direction ? invertPoint[direction] : 'down',
+            onExitDirection: onExitChildDirection,
             // @ts-ignore
             ref: mergeRefs([ref, child.ref]),
           });
@@ -80,7 +81,7 @@ function useChildren(
       }
       return child;
     });
-  }, [children, displayed, index]);
+  }, [children, displayed, index, onExitChildDirection]);
 }
 
 export default useChildren;
