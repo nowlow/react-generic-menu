@@ -2,7 +2,7 @@ import styled from "styled-components";
 import React, { useEffect, useRef, useState } from "react";
 import { Menu, MenuContextProvider, MenuElementProps, MenuOrigin } from "react-generic-menu";
 
-const Button = React.forwardRef<HTMLDivElement, MenuElementProps>(
+const Button = React.forwardRef<HTMLDivElement, MenuElementProps & React.HTMLAttributes<HTMLDivElement>>(
   (props, extRef) => {
     return (
       <StyledButton
@@ -12,9 +12,7 @@ const Button = React.forwardRef<HTMLDivElement, MenuElementProps>(
         }}
         ref={extRef}
         {...props}
-      >
-        Button
-      </StyledButton>
+      />
     );
   }
 );
@@ -34,45 +32,70 @@ interface ContextualMenuProps {
 
 const ContextualMenu = ({ x, y, displayed }: ContextualMenuProps) => {
   const buttonRef = useRef<HTMLDivElement>(null);
+  const [subDisplyed, setSubDisplayed] = useState(false);
 
   useEffect(() => {
     console.log(buttonRef);
   }, [buttonRef]);
 
   return (
-    <StyledMenu
-      x={x}
-      y={y}
-      displayed={displayed}
-      resetIndex
-      origin="top-center"
-      infiniteNavigation
-      selectable={[Button, SubMenu]}
-      transform={`scale(${displayed ? 1 : 0})`}
-    >
-      <Button />
-      <Button />
-      <Button disabled />
-      oui
-      <Button ref={buttonRef} />
-
-      <SubMenu resetIndex selectable={[Button]}>
-        <Button />
-        <Button />
-      </SubMenu>
-
-      <Button />
-      <Button />
-      <Button />
-      <Button />
-      <Button />
-      <Button />
-    </StyledMenu>
+    <>
+      <StyledMenu
+        x={x}
+        y={y}
+        displayed={displayed}
+        resetIndex
+        origin="top-center"
+        infiniteNavigation
+        selectable={[Button, SubMenuButton]}
+        transform={`scale(${displayed ? 1 : 0})`}
+      >
+        <Button>Button 1</Button>
+        <Button disabled>Disabled button</Button>
+        <Button>Button 2</Button>
+        pure text
+        <SubMenuButton ref={buttonRef} onClick={() => setSubDisplayed(old => !old)}>
+          Submenu
+          <SubMenu
+            infiniteNavigation
+            origin={'top-left'}
+            resetIndex
+            selectable={[Button]}
+            transform={`scale(${subDisplyed ? 1 : 0})`}
+            defaultIndex={0}
+            displayed={subDisplyed}
+            onExitDirection={(direction) => {
+              if (direction === 'left') {
+                setSubDisplayed(false);
+              }
+            }}
+          >
+            <Button>Button 1</Button>
+            <Button>Button 2</Button>
+            <Button disabled>Button 3</Button>
+            <Button>Button 4</Button>
+          </SubMenu>
+        </SubMenuButton>
+        <Button>Button 3</Button>
+        <Button>Button 4</Button>
+      </StyledMenu>
+    </>
   );
 };
 
-const SubMenu = styled(Menu)`
-  border: 1px solid blue;
+const SubMenu = styled(Menu)<{ origin: MenuOrigin }>`
+  position: absolute;
+  top: 0;
+  left: 100%;
+  outline: 1px solid black;
+  transform-origin: ${({ origin }) => origin.split("-").join(" ")};
+  transition: 0.1s transform;
+  background-color: white;
+  width: max-content;
+`
+
+const SubMenuButton = styled(Button)`
+  position: relative;
 `
 
 const StyledMenu = styled(Menu)<ContextualMenuProps & { origin: MenuOrigin }>`
@@ -90,13 +113,9 @@ const StyledMenu = styled(Menu)<ContextualMenuProps & { origin: MenuOrigin }>`
 function App() {
   const [{ x, y }, setPos] = useState({ x: 0, y: 0 });
   const [displayed, setDisplayed] = useState(false);
-  const [displayed2, setDisplayed2] = useState(false);
 
   return (
     <Container
-      onClick={() => {
-        setDisplayed2((old) => !old);
-      }}
       onContextMenu={(e) => {
         e.preventDefault();
         setDisplayed((old) => !old);
@@ -105,7 +124,6 @@ function App() {
     >
       <MenuContextProvider>
         <ContextualMenu x={x} y={y} displayed={displayed} />
-        {/* <ContextualMenu x={x + 100} y={y + 100} displayed={displayed2} /> */}
       </MenuContextProvider>
     </Container>
   );

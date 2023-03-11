@@ -12,12 +12,14 @@ interface UseSelectionConfig {
 
   selected?: boolean;
   selectionFrom?: Direction;
+
+  onExitDirection?: (direction: Direction) => void;
 }
 
 function useSelection(
   refs: React.RefObject<{ index: number; ref: MenuChildRef }[]>,
   menuUUID: string,
-  { defaultIndex, infiniteNavigation, displayed, resetIndex, selected, selectionFrom }: UseSelectionConfig
+  { defaultIndex, infiniteNavigation, displayed, resetIndex, selected, selectionFrom, onExitDirection }: UseSelectionConfig
 ) {
   const isSubMenu = useMemo(() => selected !== undefined, [selected]);
 
@@ -82,6 +84,10 @@ function useSelection(
       indexRef.current = found !== undefined ? found : indexRef.current;
 
       setSelection({ index: indexRef.current, direction });
+
+      if (found === undefined) {
+        onExitDirection?.(direction);
+      }
     }
 
     const onKey = (e: KeyboardEvent) => {
@@ -116,7 +122,7 @@ function useSelection(
     return () => {
       window.removeEventListener("keyup", onKey);
     };
-  }, [refs, infiniteNavigation, menuUUID, context, isSubMenu, selectionFrom]);
+  }, [refs, infiniteNavigation, menuUUID, context, isSubMenu, selectionFrom, onExitDirection]);
 
   return selection;
 }

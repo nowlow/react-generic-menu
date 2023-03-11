@@ -19,6 +19,8 @@ interface UseSelectableChildrenConfig {
 
   selected?: boolean;
   selectionFrom?: Direction;
+
+  onExitDirection?: (direction: Direction) => void;
 }
 
 export type MenuChildRef = React.RefObject<HTMLElement>;
@@ -34,6 +36,7 @@ function useChildren(
     resetIndex,
     selected,
     selectionFrom,
+    onExitDirection,
   }: UseSelectableChildrenConfig
 ): React.ReactNode {
   const refs = useRef<{ index: number; ref: MenuChildRef }[]>([]);
@@ -44,6 +47,7 @@ function useChildren(
     resetIndex,
     selected,
     selectionFrom,
+    onExitDirection,
   });
 
   const isSelectable = useCallback(

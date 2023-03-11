@@ -5,6 +5,7 @@ import { v4 as uuid } from 'uuid';
 import { MenuOrigin, MenuElementProps } from "src/typings";
 import useChildren from "src/hooks/useChildren";
 import { MenuContext } from "./MenuContext";
+import { Direction } from "src/utils/findClosestRectIndex";
 
 export interface MenuProps extends React.HTMLAttributes<HTMLDivElement>, MenuElementProps {
   origin?: MenuOrigin;
@@ -15,6 +16,8 @@ export interface MenuProps extends React.HTMLAttributes<HTMLDivElement>, MenuEle
 
   displayed?: boolean;
   resetIndex?: boolean;
+
+  onExitDirection?: (direction: Direction) => void;
 }
 
 const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
@@ -29,6 +32,7 @@ const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
       resetIndex,
       selected,
       selectionFrom,
+      onExitDirection,
       ...props
     },
     extRef
@@ -59,6 +63,7 @@ const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
       resetIndex,
       selected,
       selectionFrom,
+      onExitDirection,
     });
 
     return (
