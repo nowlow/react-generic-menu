@@ -1,16 +1,30 @@
 import styled from "styled-components";
 import React, { useEffect, useRef, useState } from "react";
 import { Menu, MenuContextProvider, MenuElementProps, MenuOrigin } from "react-generic-menu";
+import useMergedRef from "@react-hook/merged-ref";
 
 const Button = React.forwardRef<HTMLDivElement, MenuElementProps & React.HTMLAttributes<HTMLDivElement>>(
-  ({ onExitDirection: _, ...props }, extRef) => {
+  ({ onExitDirection: _, parentUUID: __, ...props }, extRef) => {
+    const ref = useRef<HTMLDivElement>(null);
+    const refs = useMergedRef(extRef, ref);
+
+    useEffect(() => {
+      if (props.selected) {
+        const button = ref.current;
+
+        if (!button) return;
+
+        button.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+      }
+    }, [props.selected]);
+
     return (
       <StyledButton
         onClick={(e: any) => {
           e.stopPropagation();
           console.log("clicked")
         }}
-        ref={extRef}
+        ref={refs}
         {...props}
       />
     );
@@ -28,9 +42,10 @@ interface ContextualMenuProps {
   x: number;
   y: number;
   displayed: boolean;
+  setDisplayed?: (displayed: boolean) => void;
 }
 
-const ContextualMenu = ({ x, y, displayed }: ContextualMenuProps) => {
+const ContextualMenu = ({ x, y, displayed, setDisplayed }: ContextualMenuProps) => {
   const buttonRef = useRef<HTMLDivElement>(null);
   const [subDisplyed, setSubDisplayed] = useState(false);
 
@@ -47,21 +62,25 @@ const ContextualMenu = ({ x, y, displayed }: ContextualMenuProps) => {
   return (
     <>
       <StyledMenu
+        name='Context'
+
         x={x}
         y={y}
         displayed={displayed}
         resetIndex
         origin="top-center"
         infiniteNavigation
-        selectable={[Button, SubMenuButton, SubMenu2]}
+        selectable={[Button, SubMenuButton, ScrollableSubMenu]}
         transform={`scale(${displayed ? 1 : 0})`}
+        onEscape={() => setDisplayed?.(false)}
       >
         <Button>Button 1</Button>
         <Button disabled>Disabled button</Button>
         <Button>Button 2</Button>
         <SubMenuButton ref={buttonRef} onClick={() => setSubDisplayed(old => !old)}>
-          Open submenu
+          Open submenu →
           <SubMenu
+            name='Dropdown'
             infiniteNavigation
             origin={'top-left'}
             resetIndex
@@ -82,11 +101,15 @@ const ContextualMenu = ({ x, y, displayed }: ContextualMenuProps) => {
           </SubMenu>
         </SubMenuButton>
         <Button>Button 3</Button>
-        <SubMenu2 selectable={[Button]}>
-          <Title>Submenu</Title>
+        <ScrollableSubMenu name='Scrollable' selectable={[Button]}>
+          <Title>Scrollable submenu</Title>
           <Button>Button 1</Button>
           <Button>Button 2</Button>
-        </SubMenu2>
+          <Button>Button 3</Button>
+          <Button>Button 4</Button>
+          <Button>Button 5</Button>
+          <Button>Button 6</Button>
+        </ScrollableSubMenu>
         pure text
         <Button>Button 4</Button>
       </StyledMenu>
@@ -98,8 +121,10 @@ const Title = styled(StyledButton)`
   font-weight: bold;
 `
 
-const SubMenu2 = styled(Menu)`
+const ScrollableSubMenu = styled(Menu)`
   outline: 1px solid blue;
+  overflow-y: scroll;
+  height: 100px;
 `
 
 const SubMenu = styled(Menu)<{ origin: MenuOrigin }>`
@@ -129,20 +154,75 @@ const StyledMenu = styled(Menu)<ContextualMenuProps & { origin: MenuOrigin }>`
   transition: 0.1s transform;
 `;
 
+function ValidationModal() {
+  return <StyledValidationMenu name={'Menu'} origin='center-center' selectable={[ValidationButtons]} displayed>
+    {/* <ValidationBody>
+      Are you sure you want to do this action?
+    </ValidationBody> */}
+    <ValidationButtons name='Sub1' defaultIndex={1} infiniteNavigation selectable={[Button]}>
+      <Button>Yes</Button>
+      <Button>No</Button>
+      <Button>Maybe</Button>
+      <Button>No wayyy girrl</Button>
+      {/* <ValidationButtons defaultIndex={0} selectable={[Button]}>
+        <Button>Yes</Button>
+        <Button>No</Button>
+      </ValidationButtons> */}
+    </ValidationButtons>
+    <ValidationButtons name='Sub2' selectable={[Button]}>
+      <Button>Yes</Button>
+      <Button>No</Button>
+      <Button>Maybe</Button>
+      <Button>No wayyy girrl</Button>
+      {/* <ValidationButtons defaultIndex={0} selectable={[Button]}>
+        <Button>Yes</Button>
+        <Button>No</Button>
+      </ValidationButtons> */}
+    </ValidationButtons>
+  </StyledValidationMenu>
+}
+
+const StyledValidationMenu = styled(Menu)`
+  position: absolute;
+  top: 50vh;
+  left: 50vw;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid black;
+`
+const ValidationBody = styled(Button)`
+  padding: 25px;
+  flex: 1;
+`
+const ValidationButtons = styled(Menu)<MenuElementProps>`
+  padding: 10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: end;
+  outline: 1px solid ${({ selected }) => selected ? 'blue' : 'transparent'};
+`
+
 function App() {
   const [{ x, y }, setPos] = useState({ x: 0, y: 0 });
   const [displayed, setDisplayed] = useState(false);
 
   return (
     <Container
+      onClick={(e) => {
+        if (e.target !== e.currentTarget) return;
+
+        e.preventDefault();
+        setDisplayed(false);
+      }}
       onContextMenu={(e) => {
         e.preventDefault();
-        setDisplayed((old) => !old);
+        setDisplayed(true);
         setPos({ x: e.clientX, y: e.clientY });
       }}
     >
       <MenuContextProvider>
-        <ContextualMenu x={x} y={y} displayed={displayed} />
+        {/* <ValidationModal /> */}
+        <ContextualMenu x={x} y={y} displayed={displayed} setDisplayed={setDisplayed} />
       </MenuContextProvider>
     </Container>
   );

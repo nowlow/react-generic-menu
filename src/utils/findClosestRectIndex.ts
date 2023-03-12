@@ -43,9 +43,13 @@ function findClosestRectIndex(
     index: node.index
   }));
 
+  const firstRect = () => {
+    return rects.sort((a, b) => a.index - b.index)[0].index;
+  }
+
   if (index < 0) {
     if (!selectionFrom) {
-      return 0;
+      return firstRect();
     }
 
     const compare = (a: number, b: number) => ['up', 'left'].includes(selectionFrom) ? a - b : b - a;
@@ -55,7 +59,7 @@ function findClosestRectIndex(
 
   const targetIndex = adaptedRects.findIndex((node) => node.index === index);
 
-  if (targetIndex === -1) return undefined;
+  if (targetIndex === -1) return firstRect();
 
   const target = adaptedRects.splice(targetIndex, 1)[0];
 

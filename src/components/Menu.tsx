@@ -13,8 +13,12 @@ export interface MenuProps extends React.HTMLAttributes<HTMLDivElement>, MenuEle
   infiniteNavigation?: boolean;
   transform?: string;
 
+  name?: string;
+
   displayed?: boolean;
   resetIndex?: boolean;
+
+  onEscape?: () => void;
 }
 
 const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
@@ -30,27 +34,46 @@ const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
       selected,
       selectionFrom,
       onExitDirection,
+      parentUUID,
+      onEscape,
+      parentStacked,
+
+      name,
+
       ...props
     },
     extRef
   ) => {
-    const menuUUID = useMemo(() => uuid(), []);
+    const menuUUID = useMemo(() => name || uuid(), [name]);
     const context = useContext(MenuContext);
 
     const ref = useRef<HTMLDivElement>(null);
     const mergedRefs = mergeRef(extRef, ref);
-
+  
     useEffect(() => {
       if (!context) throw new Error('You should put your <Menu> in a <MenuContextProvider>');
 
-      if (displayed) {
+      if (displayed && parentStacked !== false) {
         if (selected === false) return;
 
-        context.setStack((old) => [...old, menuUUID])
+        context.setStack((old) => {
+          if (parentUUID && !old.includes(parentUUID)) {
+            return old;
+          }
+          return [...old, menuUUID];
+        })
       } else {
         context.setStack((old) => old.filter((id) => id !== menuUUID))
       }
-    }, [displayed, selected, menuUUID]);
+
+      return () => {
+        context.setStack((old) => old.filter((id) => id !== menuUUID));
+      }
+    }, [displayed, selected, menuUUID, parentStacked]);
+
+    // useEffect(() => {
+    //   console.log('stack', context?.stack.join('/'))
+    // }, [context])
 
     const clonedChildren = useChildren(children, menuUUID, {
       selectable,
@@ -62,6 +85,22 @@ const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
       selectionFrom,
       onExitDirection,
     });
+
+    useEffect(() => {
+      if (!onEscape) return;
+
+      const onKeyup = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          e.stopPropagation();
+          onEscape();
+        }
+      }
+
+      window.addEventListener('keyup', onKeyup);
+      return () => window.removeEventListener('keyup', onKeyup);
+    }, [onEscape]);
 
     return (
       <Container ref={mergedRefs} origin={origin} {...props}>

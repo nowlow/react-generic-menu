@@ -61,7 +61,6 @@ function useSelection(
         infiniteNavigation,
         selectionFrom,
       );
-      
 
       if (found === undefined && !isSubMenu) {
         onExitDirection?.(direction);

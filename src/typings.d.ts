@@ -11,4 +11,6 @@ export interface MenuElementProps {
     displayed?: boolean;
 
     onExitDirection?: (direction: Direction) => boolean | undefined;
+    parentUUID?: string;
+    parentStacked?: boolean;
 }
