@@ -62,8 +62,6 @@ const ContextualMenu = ({ x, y, displayed, setDisplayed }: ContextualMenuProps) 
   return (
     <>
       <StyledMenu
-        name='Context'
-
         x={x}
         y={y}
         displayed={displayed}
@@ -80,7 +78,6 @@ const ContextualMenu = ({ x, y, displayed, setDisplayed }: ContextualMenuProps) 
         <SubMenuButton ref={buttonRef} onClick={() => setSubDisplayed(old => !old)}>
           Open submenu →
           <SubMenu
-            name='Dropdown'
             infiniteNavigation
             origin={'top-left'}
             resetIndex
@@ -101,7 +98,7 @@ const ContextualMenu = ({ x, y, displayed, setDisplayed }: ContextualMenuProps) 
           </SubMenu>
         </SubMenuButton>
         <Button>Button 3</Button>
-        <ScrollableSubMenu name='Scrollable' selectable={[Button]}>
+        <ScrollableSubMenu selectable={[Button]}>
           <Title>Scrollable submenu</Title>
           <Button>Button 1</Button>
           <Button>Button 2</Button>
@@ -155,11 +152,11 @@ const StyledMenu = styled(Menu)<ContextualMenuProps & { origin: MenuOrigin }>`
 `;
 
 function ValidationModal() {
-  return <StyledValidationMenu name={'Menu'} origin='center-center' selectable={[ValidationButtons]} displayed>
+  return <StyledValidationMenu origin='center-center' selectable={[ValidationButtons]} displayed>
     {/* <ValidationBody>
       Are you sure you want to do this action?
     </ValidationBody> */}
-    <ValidationButtons name='Sub1' defaultIndex={1} infiniteNavigation selectable={[Button]}>
+    <ValidationButtons defaultIndex={1} infiniteNavigation selectable={[Button]}>
       <Button>Yes</Button>
       <Button>No</Button>
       <Button>Maybe</Button>
@@ -169,7 +166,7 @@ function ValidationModal() {
         <Button>No</Button>
       </ValidationButtons> */}
     </ValidationButtons>
-    <ValidationButtons name='Sub2' selectable={[Button]}>
+    <ValidationButtons selectable={[Button]}>
       <Button>Yes</Button>
       <Button>No</Button>
       <Button>Maybe</Button>

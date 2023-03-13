@@ -1,6 +1,6 @@
 import React, { createContext, useState } from "react";
 
-type valOrUpdater<T> = (arg: T | ((val: T) => void)) => void;
+type valOrUpdater<T> = React.Dispatch<React.SetStateAction<T>>;
 type MenuContext = { stack: string[], setStack: valOrUpdater<string[]> };
 
 export const MenuContext = createContext<MenuContext | undefined>(undefined);

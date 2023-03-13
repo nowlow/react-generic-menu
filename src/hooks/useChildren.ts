@@ -75,11 +75,13 @@ function useChildren(
           const ref = createRef<HTMLElement>();
           refs.current.push({ index: i, ref });
 
+          const childSelected = selected !== false && i === index;
+
           return React.cloneElement(childElement, {
             displayed,
-            selected: selected !== false && i === index,
-            selectionFrom: direction ? invertPoint[direction] : 'down',
-            onExitDirection: selected !== false && i === index ? onExitChildDirection : undefined,
+            selected: childSelected,
+            selectionFrom: childSelected && direction ? invertPoint[direction] : undefined,
+            onExitDirection: childSelected ? onExitChildDirection : undefined,
             parentUUID: menuUUID,
             // FIXME: if we don't add this parameter, the useEffects to stack the selected element are executed in reverse order.
             parentStacked: context.stack.includes(menuUUID),

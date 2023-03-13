@@ -15,8 +15,15 @@ export const invertPoint: { [direction in Direction]: Direction } = {
   down: 'up'
 }
 
+interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 function findClosestRectIndex(
-  rects: { index: number; rect: DOMRect }[],
+  rects: { index: number; rect: Rect }[],
   index: number,
   direction: Direction,
   loop?: boolean,
@@ -44,7 +51,7 @@ function findClosestRectIndex(
   }));
 
   const firstRect = () => {
-    return rects.sort((a, b) => a.index - b.index)[0].index;
+    return rects.sort((a, b) => a.index - b.index)[0]?.index;
   }
 
   if (index < 0) {

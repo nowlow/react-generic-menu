@@ -13,8 +13,6 @@ export interface MenuProps extends React.HTMLAttributes<HTMLDivElement>, MenuEle
   infiniteNavigation?: boolean;
   transform?: string;
 
-  name?: string;
-
   displayed?: boolean;
   resetIndex?: boolean;
 
@@ -37,14 +35,11 @@ const Menu = React.forwardRef<HTMLDivElement, MenuProps>(
       parentUUID,
       onEscape,
       parentStacked,
-
-      name,
-
       ...props
     },
     extRef
   ) => {
-    const menuUUID = useMemo(() => name || uuid(), [name]);
+    const menuUUID = useMemo(() => uuid(), []);
     const context = useContext(MenuContext);
 
     const ref = useRef<HTMLDivElement>(null);
